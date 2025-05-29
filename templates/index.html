@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>خريطة مدينة حمص - المسؤولون الأمنيون</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- استيراد خط Cairo -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+    #mapid { height: 75vh; }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-[#808000] to-[#556B2F]" dir="rtl">
+  <!-- شريط التنقل -->
+  <nav class="bg-white shadow-md">
+    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+      <div class="text-xl font-bold text-[#556B2F]">حمص سيكيوريتي</div>
+      <div>
+        <a href="/" class="text-gray-700 hover:text-[#556B2F] mx-2 transition-colors">الرئيسية</a>
+        <a href="/login" class="text-gray-700 hover:text-[#556B2F] mx-2 transition-colors">الدخول</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mx-auto py-4 animate__animated animate__fadeIn">
+    <h2 class="text-2xl font-bold text-center mb-4 text-white">خريطة مدينة حمص</h2>
+    <div id="mapid" class="rounded-lg shadow-lg overflow-hidden border-2 border-[#556B2F]"></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    var map = L.map('mapid').setView([34.730, 36.720], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    fetch('/api/regions')
+      .then(response => response.json())
+      .then(data => {
+         data.forEach(function(region) {
+            // استخدام اللون المحدد في قاعدة البيانات لرسم الحدود
+            var layer = L.geoJSON(region.geojson, {
+               style: function(feature) {
+                   return { color: region.color };
+               }
+            }).addTo(map);
+
+            layer.bindPopup(
+               `<div class="p-2">
+                  <h5 class="font-bold text-lg">${region.name}</h5>
+                  <p class="text-sm">
+                    <strong>المسؤول:</strong> ${region.official.name}<br>
+                    <strong>الهاتف:</strong> ${region.official.phone}
+                  </p>
+                </div>`
+            );
+         });
+      })
+      .catch(error => console.error("خطأ في جلب بيانات المناطق:", error));
+  </script>
+</body>
+</html>
